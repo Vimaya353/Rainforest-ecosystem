@@ -10,30 +10,34 @@ const DAY_LENGTH_SECONDS = 60;
 
 interface Props {
   tool: Tool;
+  paused: boolean;
+  speed: number;
+  resetCount: number;
   onStats: (stats: Stats) => void;
 }
 
-export default function WorldCanvas({ tool, onStats }: Props) {
+export default function WorldCanvas({ tool, paused, speed, resetCount, onStats }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const toolRef = useRef(tool);
-  const onStatsRef = useRef(onStats);
+  const worldRef = useRef<World | null>(null);
 
-  // Keep the newest values where the animation loop can read them
+  // The animation loop is created once, so it reads the newest settings from this box
+  const live = useRef({ tool, paused, speed, onStats });
   useEffect(() => {
-    toolRef.current = tool;
-    onStatsRef.current = onStats;
-  }, [tool, onStats]);
+    live.current = { tool, paused, speed, onStats };
+  }, [tool, paused, speed, onStats]);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
     const world = new World();
+    worldRef.current = world;
     const stars = createStars();
     let width = 0;
     let height = 0;
     let frameId = 0;
     let lastNow = 0;
     let statsTimer = 0;
+    let clock = 0; // simulation time in seconds. It stops while paused.
 
     function resize() {
       const dpr = window.devicePixelRatio || 1;
@@ -46,7 +50,7 @@ export default function WorldCanvas({ tool, onStats }: Props) {
     }
 
     function onClick(e: MouseEvent) {
-      const t = toolRef.current;
+      const t = live.current.tool;
       if (t === "plant") world.addPlant(e.clientX, e.clientY);
       else world.addAnimal(t, e.clientX, e.clientY);
     }
@@ -54,33 +58,28 @@ export default function WorldCanvas({ tool, onStats }: Props) {
     function draw(now: number) {
       const dt = Math.min((now - lastNow) / 1000, 0.05);
       lastNow = now;
-      const time = (now / 1000 / DAY_LENGTH_SECONDS + 0.3) % 1;
+      const { paused, speed, onStats } = live.current;
 
-      world.update(dt);
-      drawScene(ctx, width, height, time, stars);
-      drawEntities(ctx, world, now / 1000);
+      if (!paused) {
+        for (let i = 0; i < speed; i++) world.update(dt); // faster = more steps per frame
+        clock += dt * speed;
 
-      statsTimer += dt;
-      if (statsTimer > 0.25) {
-        statsTimer = 0;
-        onStatsRef.current(world.counts);
+        statsTimer += dt;
+        if (statsTimer > 0.25) {
+          statsTimer = 0;
+          onStats(world.counts);
+        }
       }
+
+      const time = (clock / DAY_LENGTH_SECONDS + 0.3) % 1;
+      drawScene(ctx, width, height, time, stars);
+      drawEntities(ctx, world, clock);
 
       frameId = requestAnimationFrame(draw);
     }
 
     resize();
-
-    for (let i = 0; i < 8; i++) {
-      const p = world.randomSpot();
-      world.addPlant(p.x, p.y, 1);
-    }
-    for (let i = 0; i < 4; i++) {
-      const p = world.randomSpot();
-      world.addAnimal("herbivore", p.x, p.y);
-    }
-    const leopard = world.randomSpot();
-    world.addAnimal("predator", leopard.x, leopard.y);
+    world.seed();
 
     window.addEventListener("resize", resize);
     canvas.addEventListener("click", onClick);
@@ -92,6 +91,11 @@ export default function WorldCanvas({ tool, onStats }: Props) {
       canvas.removeEventListener("click", onClick);
     };
   }, []);
+
+  // Every time the reset button is pressed, resetCount goes up and we re-seed the world
+  useEffect(() => {
+    if (resetCount > 0) worldRef.current?.seed();
+  }, [resetCount]);
 
   return <canvas ref={canvasRef} />;
 }
