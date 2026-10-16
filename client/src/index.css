@@ -61,3 +61,37 @@ canvas {
   background: rgba(10, 30, 26, 0.55);
   backdrop-filter: blur(10px);
 }
+
+.controls {
+  top: 76px;
+}
+
+.chart {
+  position: fixed;
+  top: 76px;
+  right: 16px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  color: #eafff4;
+  font-size: 13px;
+  background: rgba(10, 30, 26, 0.55);
+  backdrop-filter: blur(10px);
+}
+
+.chart svg {
+  display: block;
+  margin-top: 8px;
+}
+
+.chart .legend {
+  display: flex;
+  gap: 12px;
+}
+
+.chart .legend i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 5px;
+}
