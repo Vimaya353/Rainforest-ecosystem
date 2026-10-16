@@ -47,6 +47,23 @@ export class World {
     this.height = height;
   }
 
+    // Clear everything and plant the starting forest.
+  // Used when the page loads and when the reset button is pressed.
+  seed() {
+    this.plants = [];
+    this.animals = [];
+    for (let i = 0; i < 8; i++) {
+      const p = this.randomSpot();
+      this.addPlant(p.x, p.y, 1);
+    }
+    for (let i = 0; i < 4; i++) {
+      const p = this.randomSpot();
+      this.addAnimal("herbivore", p.x, p.y);
+    }
+    const leopard = this.randomSpot();
+    this.addAnimal("predator", leopard.x, leopard.y);
+  }
+
   randomSpot() {
     return {
       x: 40 + Math.random() * (this.width - 80),
