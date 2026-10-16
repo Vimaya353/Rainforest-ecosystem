@@ -14,3 +14,35 @@ html,body,#root {
 canvas {
   display: block;
 }
+
+.toolbar {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  display: flex;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 14px;
+  background: rgba(10, 30, 26, 0.55);
+  backdrop-filter: blur(10px);
+}
+
+.toolbar button {
+  font: inherit;
+  color: #eafff4;
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.toolbar button[aria-pressed="true"] {
+  background: #2fbf8f;
+  color: #06241a;
+}
+
+.toolbar button:focus-visible {
+  outline: 2px solid #ffd36e;
+  outline-offset: 2px;
+}
