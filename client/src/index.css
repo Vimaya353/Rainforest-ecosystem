@@ -13,6 +13,8 @@ html,body,#root {
 
 canvas {
   display: block;
+  width: 100vw;
+  height: 100vh;
 }
 
 .toolbar {
@@ -45,4 +47,17 @@ canvas {
 .toolbar button:focus-visible {
   outline: 2px solid #ffd36e;
   outline-offset: 2px;
+}
+
+.stats {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  display: flex;
+  gap: 16px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  color: #eafff4;
+  background: rgba(10, 30, 26, 0.55);
+  backdrop-filter: blur(10px);
 }
