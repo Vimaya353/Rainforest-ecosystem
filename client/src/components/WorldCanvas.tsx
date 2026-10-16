@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { World } from "../engine/World";
+import { World, type Stats } from "../engine/World";
 import type { AnimalKind } from "../engine/entities";
 import { createStars, drawScene } from "./drawScene";
 import { drawEntities } from "./drawEntities";
@@ -8,14 +8,21 @@ export type Tool = "plant" | AnimalKind;
 
 const DAY_LENGTH_SECONDS = 60;
 
-export default function WorldCanvas({ tool }: { tool: Tool }) {
+interface Props {
+  tool: Tool;
+  onStats: (stats: Stats) => void;
+}
+
+export default function WorldCanvas({ tool, onStats }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const toolRef = useRef(tool);
+  const onStatsRef = useRef(onStats);
 
-  // Keep the newest selected tool where the click handler can read it
+  // Keep the newest values where the animation loop can read them
   useEffect(() => {
     toolRef.current = tool;
-  }, [tool]);
+    onStatsRef.current = onStats;
+  }, [tool, onStats]);
 
   useEffect(() => {
     const canvas = canvasRef.current!;
@@ -26,6 +33,7 @@ export default function WorldCanvas({ tool }: { tool: Tool }) {
     let height = 0;
     let frameId = 0;
     let lastNow = 0;
+    let statsTimer = 0;
 
     function resize() {
       const dpr = window.devicePixelRatio || 1;
@@ -44,7 +52,7 @@ export default function WorldCanvas({ tool }: { tool: Tool }) {
     }
 
     function draw(now: number) {
-      const dt = Math.min((now - lastNow) / 1000, 0.05); // cap big jumps
+      const dt = Math.min((now - lastNow) / 1000, 0.05);
       lastNow = now;
       const time = (now / 1000 / DAY_LENGTH_SECONDS + 0.3) % 1;
 
@@ -52,12 +60,17 @@ export default function WorldCanvas({ tool }: { tool: Tool }) {
       drawScene(ctx, width, height, time, stars);
       drawEntities(ctx, world, now / 1000);
 
+      statsTimer += dt;
+      if (statsTimer > 0.25) {
+        statsTimer = 0;
+        onStatsRef.current(world.counts);
+      }
+
       frameId = requestAnimationFrame(draw);
     }
 
     resize();
 
-    // Start the forest with a few residents
     for (let i = 0; i < 8; i++) {
       const p = world.randomSpot();
       world.addPlant(p.x, p.y, 1);
