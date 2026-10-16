@@ -118,4 +118,13 @@ function drawAnimal(ctx: CanvasRenderingContext2D, a: Animal, s: number, time: n
   ctx.fill();
 
   ctx.restore();
+
+  // Hunger bar: only appears when the animal is starving
+  if (a.energy < 40) {
+    const w = 30 * s;
+    ctx.fillStyle = "rgba(0,0,0,0.4)";
+    ctx.fillRect(a.x - w / 2, a.y - L * 2.1, w, 4);
+    ctx.fillStyle = "#ff5a5f";
+    ctx.fillRect(a.x - w / 2, a.y - L * 2.1, (w * Math.max(0, a.energy)) / 40, 4);
+  }
 }
